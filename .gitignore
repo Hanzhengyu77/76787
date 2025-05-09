@@ -1,2 +1,110 @@
-# Google App Engine generated folder
-appengine-generated/
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文言虚实词训练</title>
+  <!-- Tailwind via CDN (Twind) -->
+  <script src="https://cdn.jsdelivr.net/npm/twind@0.16.17/shim.min.js"></script>
+  <!-- React & ReactDOM via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Framer Motion via CDN -->
+  <script src="https://unpkg.com/framer-motion@11.0.4/dist/framer-motion.umd.js"></script>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/javascript">
+    const { useState, useMemo } = React;
+    const { motion } = window["framer-motion"];
+
+    /** 2023 江西高考文言文两则 */
+    const passage = `材料一：
+襄子围于晋阳中，出围，赏有功者五人，高赫为赏首。张孟谈曰：“晋阳之事，赫无大功，今为赏首，何也？”襄子曰：“晋阳之事，寡人国家危，社稷殆矣。吾群臣无有不骄侮之意者，唯赫子不失君臣之礼，是以先之。”仲尼闻之，曰：“善赏哉，襄子！赏一人而天下为人臣者莫敢失礼矣。”或曰：仲尼不知善赏矣。夫善赏罚者，百官不敢侵职，群臣不敢失礼。上设其法，而下无奸诈之心。如此，则可谓善赏罚矣。襄子有君臣亲之泽，操令行禁止之法，而犹有骄侮之臣，是襄子失罚也。为人臣者，乘事而有功则赏。今赫仅不骄侮，而襄子赏之，是失赏也。故曰：仲尼不知善赏。
+
+材料二：
+陈人有武臣，谓子鲋曰：“韩子立法，其所以异夫子之论者，纷如也。予每探其意而校其事，持久历远，遏奸劝善，韩氏未必非，孔氏未必得也。若韩非者，亦当世之圣人也。”子鲋曰：“今世人有言高者必以极天为称，言下者必以深渊为名。好事而穿凿者，必言经以自辅，援圣以自贤，欲以取信于群愚而度其说也。若诸子之书，其义皆然。请略说一隅，而君子审其信否焉。”武臣曰：“诺。”子鲋曰：“乃者，赵、韩共并知氏，赵襄子之行赏，先加具臣而后有功。韩非书云‘夫子善之’，引以张本，然后难之，岂有不似哉？然实诈也。何以明其然？昔我先君以春秋哀公十六年四月己丑卒，至二十七年，荀瑶与韩、赵、魏伐郑，遇陈坦而还，是时夫子卒已十一年矣，而晋四卿皆在也。后悼公十四年，知氏乃亡。此先后甚远，而韩非公称之，曾无怍意。是则世多好事之徒，皆非之罪也。故吾以是默口于小道、塞耳于诸子久矣。而子立尺表以度天，植寸指以测渊，矇大道而不悟，信诬说以疑圣，殆非所望也。`;
+
+    /** 词汇列表 */
+    const vocab = [
+      { token: "之", type: "虚词", explain: "助词，用作定语标志或结构助词，或句末语气等多功能" },
+      { token: "其", type: "虚词", explain: "代词；有时表示推测、反问等语气" },
+      { token: "也", type: "虚词", explain: "判断语气词，常置句末，表肯定" },
+      { token: "而", type: "虚词", explain: "连词，表顺承、转折或因果" },
+      { token: "襄子", type: "实词", explain: "人名，赵襄子，春秋末晋国赵氏领袖" },
+      { token: "晋阳", type: "实词", explain: "地名，今山西太原，为赵氏根据地" },
+      { token: "骄侮", type: "实词", explain: "傲慢轻侮" },
+      { token: "赏", type: "实词", explain: "奖赏，奖励" },
+      { token: "罚", type: "实词", explain: "惩罚" },
+      { token: "奸诈", type: "实词", explain: "奸邪欺诈" }
+    ];
+
+    // 简易分词
+    function tokenize(text) {
+      let rem = text, tokens = [];
+      while (rem) {
+        const m = vocab.filter(v=>rem.startsWith(v.token))
+                       .sort((a,b)=>b.token.length-a.token.length)[0];
+        if (m) { tokens.push({word:m.token,meta:m}); rem=rem.slice(m.token.length); }
+        else  { tokens.push({word:rem[0],meta:null}); rem=rem.slice(1); }
+      }
+      return tokens;
+    }
+
+    // 小测验组件
+    function Quiz({vocab}) {
+      const [cur, setCur] = useState(vocab[Math.floor(Math.random()*vocab.length)]);
+      const [fb, setFb] = useState(null);
+      function answer(t) {
+        setFb(t===cur.type ? "✅ 正确" : "❌ 错，应为 "+cur.type);
+        setTimeout(()=>{
+          setCur(vocab[Math.floor(Math.random()*vocab.length)]);
+          setFb(null);
+        }, 1200);
+      }
+      return React.createElement("div",{className:"bg-white p-4 rounded shadow text-center space-y-2 mt-4"},
+        React.createElement("h3",{className:"font-medium"},"词类小测验"),
+        React.createElement("p",{className:"text-2xl font-bold text-indigo-600"},cur.token),
+        React.createElement("div",{className:"flex justify-center gap-4"},
+          React.createElement("button",{onClick:()=>answer('虚词'),className:"border px-3 py-1 rounded"},"虚词"),
+          React.createElement("button",{onClick:()=>answer('实词'),className:"border px-3 py-1 rounded"},"实词")
+        ),
+        fb && React.createElement("p",null,fb)
+      );
+    }
+
+    // 主 App
+    function App(){
+      const [sel, setSel] = useState(null);
+      const tokens = useMemo(()=>tokenize(passage), []);
+      return React.createElement("div",{className:"p-4 space-y-6"},
+        React.createElement(motion.h1,{initial:{opacity:0,y:-20},animate:{opacity:1,y:0},className:"text-3xl font-bold text-center"},"2023 江西高考文言虚实词训练"),
+        // 文本展示
+        React.createElement("div",{className:"bg-white p-4 rounded shadow leading-relaxed text-lg"},
+          tokens.map((t,i)=>
+            React.createElement(motion.span,{
+              key:i,
+              whileHover:t.meta?{scale:1.2}:{},
+              onClick:()=>t.meta&&setSel(t.meta),
+              className:`inline-block ${t.meta? (t.meta.type==='虚词'? 'text-blue-600':'text-green-700')+' cursor-pointer':''}`
+            }, t.word)
+          )
+        ),
+        // 弹窗
+        sel && React.createElement("div",{className:"fixed inset-0 bg-black/30 flex items-center justify-center"},
+          React.createElement("div",{className:"bg-white p-6 rounded shadow-xl max-w-sm w-full space-y-2"},
+            React.createElement("h2",{className:"text-xl font-semibold"},sel.token," ",React.createElement("span",{className:"text-sm text-gray-500"},"(",sel.type,")")),
+            React.createElement("p",null,sel.explain),
+            React.createElement("button",{onClick:()=>setSel(null),className:"mt-2 px-4 py-1 bg-indigo-600 text-white rounded"},"关闭")
+          )
+        ),
+        React.createElement(Quiz,{vocab}),
+        React.createElement("div",{className:"text-center text-gray-500 mt-6"},"总结：通过高亮、点击、测验，一次性强化虚词/实词认知。")
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>
